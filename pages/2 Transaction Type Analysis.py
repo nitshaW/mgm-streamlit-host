@@ -6,12 +6,6 @@ import pandas as pd
 from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(layout="wide")
-st.title("Daily Inventory Analysis")
-
-sel = "Inventory VS Quantity Counts"
-st.markdown(f"**{sel}**")
-value_chart_tab, value_dataframe_tab = st.tabs(["Chart", "Tabular Data"])
-summary_tab = st.sidebar.expander("Data Summary")
 
 # Define a function to get a Snowflake session
 @st.cache_resource
@@ -29,7 +23,7 @@ def get_session():
         }
         return Session.builder.configs(pars).create()
 
-# Define a function to execute a query and return a DataFrame
+# Function to execute a query and return a DataFrame
 @st.cache_data
 def get_dataframe(query):
     session = get_session()
@@ -37,13 +31,9 @@ def get_dataframe(query):
         st.error("Session is not initialized.")
         return None
     try:
-        # Execute query and fetch results
         snow_df = session.sql(query).to_pandas()
-
-        # Perform preprocessing on Snowflake using Snowpark DataFrame operations
         snow_df = snow_df.drop_duplicates()
-        snow_df = snow_df.dropna(subset=['TI_CALDATE', 'TB_TRANSDATE'])  # Drop rows with null dates
-
+        snow_df = snow_df.dropna(subset=['TI_CALDATE', 'TB_TRANSDATE'])
         # Replace null EF_NAME and TI_ITEMNAME with 'Unknown'
         snow_df['EF_NAME'] = snow_df['EF_NAME'].fillna('Unknown')
         snow_df['TI_ITEMNAME'] = snow_df['TI_ITEMNAME'].fillna('Unknown')

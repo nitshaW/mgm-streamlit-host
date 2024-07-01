@@ -6,9 +6,9 @@ import pandas as pd
 from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(layout="wide")
-st.title("Daily Inventory Analysis")
+st.title("Transaction Analysis")
 
-sel = "Inventory VS Quantity Counts"
+sel = "Transaction Value Analysis Over Time"
 st.markdown(f"**{sel}**")
 value_chart_tab, value_dataframe_tab = st.tabs(["Chart", "Tabular Data"])
 summary_tab = st.sidebar.expander("Data Summary")

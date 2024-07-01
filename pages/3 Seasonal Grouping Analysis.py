@@ -6,12 +6,6 @@ import pandas as pd
 from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(layout="wide")
-st.title("Daily Inventory Analysis")
-
-sel = "Inventory VS Quantity Counts"
-st.markdown(f"**{sel}**")
-value_chart_tab, value_dataframe_tab = st.tabs(["Chart", "Tabular Data"])
-summary_tab = st.sidebar.expander("Data Summary")
 
 # Define a function to get a Snowflake session
 @st.cache_resource
@@ -29,7 +23,7 @@ def get_session():
         }
         return Session.builder.configs(pars).create()
 
-# Define a function to execute a query and return a DataFrame
+# Function to execute a query and return a DataFrame
 @st.cache_data
 def get_dataframe(query):
     session = get_session()
@@ -37,13 +31,9 @@ def get_dataframe(query):
         st.error("Session is not initialized.")
         return None
     try:
-        # Execute query and fetch results
         snow_df = session.sql(query).to_pandas()
-
-        # Perform preprocessing on Snowflake using Snowpark DataFrame operations
         snow_df = snow_df.drop_duplicates()
-        snow_df = snow_df.dropna(subset=['TI_CALDATE', 'TB_TRANSDATE'])  # Drop rows with null dates
-
+        snow_df = snow_df.dropna(subset=['TI_CALDATE', 'TB_TRANSDATE'])
         # Replace null EF_NAME and TI_ITEMNAME with 'Unknown'
         snow_df['EF_NAME'] = snow_df['EF_NAME'].fillna('Unknown')
         snow_df['TI_ITEMNAME'] = snow_df['TI_ITEMNAME'].fillna('Unknown')
@@ -55,11 +45,10 @@ def get_dataframe(query):
         snow_df.rename(columns={
             'VP_VENUENAME': 'Venue Name',
             'VT_NAME': 'Venue Type',
-            'TB_GLOBALTYPE': 'Pay Type',
+            'TB_GLOBALTYPE': 'Global Type',
             'EF_NAME': 'Event Name',
             'TI_ITEMNAME': 'Item Name',
             'TB_QTY': 'Quantity',
-            'STOCK': 'Stock',
             'TB_SUBTOTALAGREE': 'Value',
             'TB_GUESTS': 'Guests',
             'TB_CARTID': 'Cart ID',
@@ -181,67 +170,67 @@ if df is not None:
                     for event_name in selected_event_name:
                         for item_name in selected_item_name:
                             filtered_item_df = df_grouped[(df_grouped['Event Name'] == event_name) & (df_grouped['Item Name'] == item_name)]
-                            fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_sum"], mode='lines+markers', name=f'{event_name} - {item_name} Transaction Value Sum', hovertemplate='%{x}<br>Value Sum: %{y}<br>Category: {event_name} - {item_name}'))
+                            fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_sum"], mode='lines+markers', name=f'{event_name} - {item_name} Transaction Value Sum', hovertemplate=f'%{{x}}<br>Value Sum: %{{y}}<br>Category: {event_name} - {item_name}'))
                             if show_average:
-                                fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_avg"], mode='lines+markers', name=f'{event_name} - {item_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Value: %{y}<br>Category: {event_name} - {item_name}'))
+                                fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_avg"], mode='lines+markers', name=f'{event_name} - {item_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Value: %{{y}}<br>Category: {event_name} - {item_name}'))
 
-                            fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_sum"], mode='lines+markers', name=f'{event_name} - {item_name} Guests Sum', hovertemplate='%{x}<br>Guests Sum: %{y}<br>Category: {event_name} - {item_name}'))
+                            fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_sum"], mode='lines+markers', name=f'{event_name} - {item_name} Guests Sum', hovertemplate=f'%{{x}}<br>Guests Sum: %{{y}}<br>Category: {event_name} - {item_name}'))
                             if show_average:
-                                fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_avg"], mode='lines+markers', name=f'{event_name} - {item_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Guests: %{y}<br>Category: {event_name} - {item_name}'))
+                                fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_avg"], mode='lines+markers', name=f'{event_name} - {item_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Guests: %{{y}}<br>Category: {event_name} - {item_name}'))
 
-                            fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_sum"], mode='lines+markers', name=f'{event_name} - {item_name} Quantity Sum', hovertemplate='%{x}<br>Quantity Sum: %{y}<br>Category: {event_name} - {item_name}'))
+                            fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_sum"], mode='lines+markers', name=f'{event_name} - {item_name} Quantity Sum', hovertemplate=f'%{{x}}<br>Quantity Sum: %{{y}}<br>Category: {event_name} - {item_name}'))
                             if show_average:
-                                fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_avg"], mode='lines+markers', name=f'{event_name} - {item_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Quantity: %{y}<br>Category: {event_name} - {item_name}'))
+                                fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_avg"], mode='lines+markers', name=f'{event_name} - {item_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Quantity: %{{y}}<br>Category: {event_name} - {item_name}'))
 
-                            fig4.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{event_name} - {item_name} Transaction Counts', hovertemplate='%{x}<br>Transaction Counts: %{y}<br>Category: {event_name} - {item_name}'))
+                            fig4.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{event_name} - {item_name} Transaction Counts', hovertemplate=f'%{{x}}<br>Transaction Counts: %{{y}}<br>Category: {event_name} - {item_name}'))
                 else:
                     for item_name in selected_item_name:
                         filtered_item_df = df_grouped[df_grouped['Item Name'] == item_name]
-                        fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_sum"], mode='lines+markers', name=f'{item_name} Transaction Value Sum', hovertemplate='%{x}<br>Value Sum: %{y}<br>Category: {item_name}'))
+                        fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_sum"], mode='lines+markers', name=f'{item_name} Transaction Value Sum', hovertemplate=f'%{{x}}<br>Value Sum: %{{y}}<br>Category: {item_name}'))
                         if show_average:
-                            fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_avg"], mode='lines+markers', name=f'{item_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Value: %{y}<br>Category: {item_name}'))
+                            fig1.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Value_avg"], mode='lines+markers', name=f'{item_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Value: %{{y}}<br>Category: {item_name}'))
 
-                        fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_sum"], mode='lines+markers', name=f'{item_name} Guests Sum', hovertemplate='%{x}<br>Guests Sum: %{y}<br>Category: {item_name}'))
+                        fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_sum"], mode='lines+markers', name=f'{item_name} Guests Sum', hovertemplate=f'%{{x}}<br>Guests Sum: %{{y}}<br>Category: {item_name}'))
                         if show_average:
-                            fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_avg"], mode='lines+markers', name=f'{item_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Guests: %{y}<br>Category: {item_name}'))
+                            fig2.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Guests_avg"], mode='lines+markers', name=f'{item_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Guests: %{{y}}<br>Category: {item_name}'))
 
-                        fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_sum"], mode='lines+markers', name=f'{item_name} Quantity Sum', hovertemplate='%{x}<br>Quantity Sum: %{y}<br>Category: {item_name}'))
+                        fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_sum"], mode='lines+markers', name=f'{item_name} Quantity Sum', hovertemplate=f'%{{x}}<br>Quantity Sum: %{{y}}<br>Category: {item_name}'))
                         if show_average:
-                            fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_avg"], mode='lines+markers', name=f'{item_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Quantity: %{y}<br>Category: {item_name}'))
+                            fig3.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["Quantity_avg"], mode='lines+markers', name=f'{item_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Quantity: %{{y}}<br>Category: {item_name}'))
 
-                        fig4.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{item_name} Transaction Counts', hovertemplate='%{x}<br>Transaction Counts: %{y}<br>Category: {item_name}'))
+                        fig4.add_trace(go.Scatter(x=filtered_item_df["YearSeason"], y=filtered_item_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{item_name} Transaction Counts', hovertemplate=f'%{{x}}<br>Transaction Counts: %{{y}}<br>Category: {item_name}'))
             elif selected_event_name:
                 for event_name in selected_event_name:
                     filtered_ef_df = df_grouped[df_grouped['Event Name'] == event_name]
-                    fig1.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Value_sum"], mode='lines+markers', name=f'{event_name} Transaction Value Sum', hovertemplate='%{x}<br>Value Sum: %{y}<br>Category: {event_name}'))
+                    fig1.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Value_sum"], mode='lines+markers', name=f'{event_name} Transaction Value Sum', hovertemplate=f'%{{x}}<br>Value Sum: %{{y}}<br>Category: {event_name}'))
                     if show_average:
-                        fig1.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Value_avg"], mode='lines+markers', name=f'{event_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Value: %{y}<br>Category: {event_name}'))
+                        fig1.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Value_avg"], mode='lines+markers', name=f'{event_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Value: %{{y}}<br>Category: {event_name}'))
 
-                    fig2.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Guests_sum"], mode='lines+markers', name=f'{event_name} Guests Sum', hovertemplate='%{x}<br>Guests Sum: %{y}<br>Category: {event_name}'))
+                    fig2.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Guests_sum"], mode='lines+markers', name=f'{event_name} Guests Sum', hovertemplate=f'%{{x}}<br>Guests Sum: %{{y}}<br>Category: {event_name}'))
                     if show_average:
-                        fig2.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Guests_avg"], mode='lines+markers', name=f'{event_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Guests: %{y}<br>Category: {event_name}'))
+                        fig2.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Guests_avg"], mode='lines+markers', name=f'{event_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Guests: %{{y}}<br>Category: {event_name}'))
 
-                    fig3.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Quantity_sum"], mode='lines+markers', name=f'{event_name} Quantity Sum', hovertemplate='%{x}<br>Quantity Sum: %{y}<br>Category: {event_name}'))
+                    fig3.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Quantity_sum"], mode='lines+markers', name=f'{event_name} Quantity Sum', hovertemplate=f'%{{x}}<br>Quantity Sum: %{{y}}<br>Category: {event_name}'))
                     if show_average:
-                        fig3.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Quantity_avg"], mode='lines+markers', name=f'{event_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Quantity: %{y}<br>Category: {event_name}'))
+                        fig3.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["Quantity_avg"], mode='lines+markers', name=f'{event_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Quantity: %{{y}}<br>Category: {event_name}'))
 
-                    fig4.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{event_name} Transaction Counts', hovertemplate='%{x}<br>Transaction Counts: %{y}<br>Category: {event_name}'))
+                    fig4.add_trace(go.Scatter(x=filtered_ef_df["YearSeason"], y=filtered_ef_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{event_name} Transaction Counts', hovertemplate=f'%{{x}}<br>Transaction Counts: %{{y}}<br>Category: {event_name}'))
             else:
                 for venue_name in selected_venue_name:
                     filtered_vp_df = df_grouped[df_grouped['Venue Name'] == venue_name]
-                    fig1.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Value_sum"], mode='lines+markers', name=f'{venue_name} Transaction Value Sum', hovertemplate='%{x}<br>Value Sum: %{y}<br>Category: {venue_name}'))
+                    fig1.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Value_sum"], mode='lines+markers', name=f'{venue_name} Transaction Value Sum', hovertemplate=f'%{{x}}<br>Value Sum: %{{y}}<br>Category: {venue_name}'))
                     if show_average:
-                        fig1.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Value_avg"], mode='lines+markers', name=f'{venue_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Value: %{y}<br>Category: {venue_name}'))
+                        fig1.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Value_avg"], mode='lines+markers', name=f'{venue_name} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Value: %{{y}}<br>Category: {venue_name}'))
 
-                    fig2.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Guests_sum"], mode='lines+markers', name=f'{venue_name} Guests Sum', hovertemplate='%{x}<br>Guests Sum: %{y}<br>Category: {venue_name}'))
+                    fig2.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Guests_sum"], mode='lines+markers', name=f'{venue_name} Guests Sum', hovertemplate=f'%{{x}}<br>Guests Sum: %{{y}}<br>Category: {venue_name}'))
                     if show_average:
-                        fig2.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Guests_avg"], mode='lines+markers', name=f'{venue_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Guests: %{y}<br>Category: {venue_name}'))
+                        fig2.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Guests_avg"], mode='lines+markers', name=f'{venue_name} Monthly Average Guests', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Guests: %{{y}}<br>Category: {venue_name}'))
 
-                    fig3.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Quantity_sum"], mode='lines+markers', name=f'{venue_name} Quantity Sum', hovertemplate='%{x}<br>Quantity Sum: %{y}<br>Category: {venue_name}'))
+                    fig3.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Quantity_sum"], mode='lines+markers', name=f'{venue_name} Quantity Sum', hovertemplate=f'%{{x}}<br>Quantity Sum: %{{y}}<br>Category: {venue_name}'))
                     if show_average:
-                        fig3.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Quantity_avg"], mode='lines+markers', name=f'{venue_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Quantity: %{y}<br>Category: {venue_name}'))
+                        fig3.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["Quantity_avg"], mode='lines+markers', name=f'{venue_name} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Quantity: %{{y}}<br>Category: {venue_name}'))
 
-                    fig4.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{venue_name} Transaction Counts', hovertemplate='%{x}<br>Transaction Counts: %{y}<br>Category: {venue_name}'))
+                    fig4.add_trace(go.Scatter(x=filtered_vp_df["YearSeason"], y=filtered_vp_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{venue_name} Transaction Counts', hovertemplate=f'%{{x}}<br>Transaction Counts: %{{y}}<br>Category: {venue_name}'))
 
             fig1.update_layout(height=400, title="Transaction Value Analysis by Season", xaxis_title="Season", yaxis_title="Transaction Value", xaxis=dict(type='category', categoryorder='category ascending'))
             fig2.update_layout(height=400, title="Guest Analysis by Season", xaxis_title="Season", yaxis_title="Guests", xaxis=dict(type='category', categoryorder='category ascending'))

@@ -6,12 +6,6 @@ import pandas as pd
 from snowflake.snowpark.context import get_active_session
 
 st.set_page_config(layout="wide")
-st.title("Daily Inventory Analysis")
-
-sel = "Inventory VS Quantity Counts"
-st.markdown(f"**{sel}**")
-value_chart_tab, value_dataframe_tab = st.tabs(["Chart", "Tabular Data"])
-summary_tab = st.sidebar.expander("Data Summary")
 
 # Define a function to get a Snowflake session
 @st.cache_resource
@@ -29,7 +23,7 @@ def get_session():
         }
         return Session.builder.configs(pars).create()
 
-# Define a function to execute a query and return a DataFrame
+# Function to execute a query and return a DataFrame
 @st.cache_data
 def get_dataframe(query):
     session = get_session()
@@ -37,20 +31,17 @@ def get_dataframe(query):
         st.error("Session is not initialized.")
         return None
     try:
-        # Execute query and fetch results
         snow_df = session.sql(query).to_pandas()
-
-        # Perform preprocessing on Snowflake using Snowpark DataFrame operations
         snow_df = snow_df.drop_duplicates()
-        snow_df = snow_df.dropna(subset=['TI_CALDATE', 'TB_TRANSDATE'])  # Drop rows with null dates
-
+        snow_df = snow_df.dropna(subset=['TI_CALDATE', 'TB_TRANSDATE'])
+        
         # Replace null EF_NAME and TI_ITEMNAME with 'Unknown'
         snow_df['EF_NAME'] = snow_df['EF_NAME'].fillna('Unknown')
         snow_df['TI_ITEMNAME'] = snow_df['TI_ITEMNAME'].fillna('Unknown')
         snow_df['TB_GLOBALTYPE'] = snow_df['TB_GLOBALTYPE'].fillna('Unknown')
         snow_df['VT_NAME'] = snow_df['VT_NAME'].fillna('Unknown')
         snow_df['VP_VENUENAME'] = snow_df['VP_VENUENAME'].fillna('Unknown')
-
+        
         # Rename columns
         snow_df.rename(columns={
             'VP_VENUENAME': 'Venue Name',
@@ -59,14 +50,13 @@ def get_dataframe(query):
             'EF_NAME': 'Event Name',
             'TI_ITEMNAME': 'Item Name',
             'TB_QTY': 'Quantity',
-            'STOCK': 'Stock',
             'TB_SUBTOTALAGREE': 'Value',
             'TB_GUESTS': 'Guests',
             'TB_CARTID': 'Cart ID',
             'TI_CALDATE': 'Event Date',
             'TB_TRANSDATE': 'Transaction Date'
         }, inplace=True)
-
+        
         return snow_df
     except Exception as e:
         st.error(f"Failed to execute query or process data: {str(e)}")
@@ -192,19 +182,19 @@ if df is not None:
             for season in sorted_seasons:
                 season_df = df_grouped[df_grouped['YearSeason'] == season]
 
-                fig1.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Value_sum"], mode='lines+markers', name=f'{season} Transaction Value Sum', hovertemplate='%{x}<br>Value Sum: %{y}<br>Category: {season}'))
+                fig1.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Value_sum"], mode='lines+markers', name=f'{season} Transaction Value Sum', hovertemplate=f'%{{x}}<br>Value Sum: %{{y}}<br>Category: {season}'))
                 if show_average:
-                    fig1.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Value_avg"], mode='lines+markers', name=f'{season} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Value: %{y}<br>Category: {season}'))
+                    fig1.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Value_avg"], mode='lines+markers', name=f'{season} Monthly Average Transaction Value', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Value: %{{y}}<br>Category: {season}'))
 
-                fig2.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Guests_sum"], mode='lines+markers', name=f'{season} Guests Sum', hovertemplate='%{x}<br>Guests Sum: %{y}<br>Category: {season}'))
+                fig2.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Guests_sum"], mode='lines+markers', name=f'{season} Guests Sum', hovertemplate=f'%{{x}}<br>Guests Sum: %{{y}}<br>Category: {season}'))
                 if show_average:
-                    fig2.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Guests_avg"], mode='lines+markers', name=f'{season} Monthly Average Guests', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Guests: %{y}<br>Category: {season}'))
+                    fig2.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Guests_avg"], mode='lines+markers', name=f'{season} Monthly Average Guests', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Guests: %{{y}}<br>Category: {season}'))
 
-                fig3.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Quantity_sum"], mode='lines+markers', name=f'{season} Quantity Sum', hovertemplate='%{x}<br>Quantity Sum: %{y}<br>Category: {season}'))
+                fig3.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Quantity_sum"], mode='lines+markers', name=f'{season} Quantity Sum', hovertemplate=f'%{{x}}<br>Quantity Sum: %{{y}}<br>Category: {season}'))
                 if show_average:
-                    fig3.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Quantity_avg"], mode='lines+markers', name=f'{season} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate='%{x}<br>Average Quantity: %{y}<br>Category: {season}'))
+                    fig3.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["Quantity_avg"], mode='lines+markers', name=f'{season} Monthly Average Quantity', line=dict(dash='dot'), hovertemplate=f'%{{x}}<br>Average Quantity: %{{y}}<br>Category: {season}'))
 
-                fig4.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{season} Transaction Counts', hovertemplate='%{x}<br>Transaction Counts: %{y}<br>Category: {season}'))
+                fig4.add_trace(go.Scatter(x=season_df["DayOfWeek"], y=season_df["TRANSACTION_COUNT"], mode='lines+markers', name=f'{season} Transaction Counts', hovertemplate=f'%{{x}}<br>Transaction Counts: %{{y}}<br>Category: {season}'))
 
             fig1.update_layout(height=400, title="Transaction Value Analysis by Day of the Week", xaxis_title="Day of the Week", yaxis_title="Transaction Value", xaxis=dict(type='category', categoryorder='array', categoryarray=day_order))
             fig2.update_layout(height=400, title="Guest Analysis by Day of the Week", xaxis_title="Day of the Week", yaxis_title="Guests", xaxis=dict(type='category', categoryorder='array', categoryarray=day_order))
